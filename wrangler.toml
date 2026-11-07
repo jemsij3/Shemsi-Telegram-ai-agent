@@ -11,8 +11,8 @@ binding = "AI"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "shemsi-ai-db"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_name = "telegram-ai-assistant"
+database_id = "2fe19a33-5da9-4e44-a5d9-32718ae03af3"
 migrations_dir = "migrations"
 
 [assets]
