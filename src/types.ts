@@ -1,6 +1,6 @@
 export type Env = {
   DB: D1Database;
-  AI?: Ai;
+  AI: Ai;
   ASSETS?: Fetcher;
   TELEGRAM_BOT_TOKEN?: string;
   TELEGRAM_SECRET_TOKEN?: string;

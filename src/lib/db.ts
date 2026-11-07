@@ -1,4 +1,4 @@
-import type { Env, SafeUser } from '../types';
+import type { Env, MemoryRow, SafeUser } from '../types';
 
 export async function upsertUser(db: D1Database, user: SafeUser) {
   const id = `tg_${user.telegramId}`;

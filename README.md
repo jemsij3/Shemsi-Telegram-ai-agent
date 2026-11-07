@@ -1,36 +1,58 @@
-# Shemsi AI setup (developer handoff)
+# Shemsi AI deployment review and setup
 
-Shemsi AI uses one Cloudflare Worker, D1, Workers AI, Telegram Bot API, and a Telegram Mini App. Third-party app integrations and live web search are intentionally not advertised until real authorization and action handlers exist.
+Shemsi AI is a Cloudflare Worker with a Telegram webhook and a Telegram Mini App. The current working features are Telegram chat, Workers AI replies, D1 conversation history and private memory, and built-in prompt skills. It does not currently execute scheduled tasks, perform live web search, read uploaded files, or connect third-party apps.
 
-## Current implementation
+## Cloudflare configuration
 
-- Telegram `/start`, `/help`, `/memory`, `/forget`, `/skills`, and `/apps` handlers
-- Telegram webhook secret validation (required)
-- Workers AI conversational replies and D1 conversation history
-- Private D1 memory, `/forget`, Mini App memory deletion
-- Telegram Mini App authentication using Telegram's signed `initData` (24-hour maximum age)
-- Private dashboard API; no user IDs accepted from query parameters
-- Four real built-in AI prompt workflows in the skills list
-- Responsive Mini App with light/dark theme
+- Worker entry point: `src/index.ts` (`npm run deploy` invokes Wrangler).
+- Workers AI binding: `AI`, configured in `wrangler.toml` and called as `env.AI.run(...)` in `src/lib/ai.ts`.
+- D1 binding: `DB`, configured in `wrangler.toml`; schema migration: `migrations/0001_initial.sql`.
+- Static assets binding: `ASSETS`, serves `public/`; `/mini-app` is internally mapped to the static root.
+- There are no R2 buckets, Queues, or Workflows configured or used by the current code.
+- No Gemini, Google AI Studio, or Google AI API dependencies are used. The Google Calendar/Gmail references in the older `src/db/schema.sql` are not active integrations; the canonical deployment migration is under `migrations/`.
 
-## Create a new Telegram bot
+## Required Cloudflare configuration
 
-1. In Telegram, open the official **@BotFather** account and use `/newbot`.
-2. Choose a new display name and unique username. Copy the token once and keep it secret. Do not reuse a token from another bot.
-3. Set the bot's Mini App menu button to the deployed Worker URL ending in `/mini-app` (BotFather `/setmenubutton`), or use `/setdomain` with the Worker hostname if Telegram requests a domain.
-4. Store the token as a Cloudflare Worker secret; never commit it.
+### Bindings
 
-## Cloudflare deploy steps
+| Binding | Type | Required configuration |
+| --- | --- | --- |
+| `AI` | Workers AI | Configured by `[ai] binding = "AI"` in `wrangler.toml`; enable Workers AI for the Cloudflare account. |
+| `DB` | D1 | Create a dedicated D1 database and replace `REPLACE_WITH_D1_DATABASE_ID` in `wrangler.toml` with its real database ID. |
+| `ASSETS` | Static assets | Configured to serve `./public` in `wrangler.toml`. |
 
-Prerequisites: Node.js/npm and a Cloudflare account with Workers AI available.
+### Variables and secrets
 
-1. Clone this repo and run `npm install`.
-2. Authenticate: `npx wrangler login`.
-3. Create a separate D1 database for this app: `npx wrangler d1 create shemsi-ai-db`. Copy the returned database ID into `wrangler.toml` replacing `REPLACE_WITH_D1_DATABASE_ID`.
-4. Apply schema: `npx wrangler d1 migrations apply shemsi-ai-db --remote`.
-5. Set secrets interactively: `npx wrangler secret put TELEGRAM_BOT_TOKEN` (paste the new BotFather token), then `npx wrangler secret put TELEGRAM_SECRET_TOKEN` (use a long random value; keep it private). Optional: `npx wrangler secret put MINI_APP_URL` with the final `https://<worker>.<account>.workers.dev/mini-app` URL.
-6. Deploy: `npm run deploy`. Visit `/api/health` and verify `{"status":"ok"...}`.
-7. Register webhook, replacing placeholders and using the exact same secret token as step 5:
+| Name | Kind | Required? | Purpose |
+| --- | --- | --- | --- |
+| `TELEGRAM_BOT_TOKEN` | Worker secret | Required | Token for the newly created Shemsi Telegram bot. |
+| `TELEGRAM_SECRET_TOKEN` | Worker secret | Required | Random webhook secret; must match the value sent when registering Telegram's webhook. |
+| `DEFAULT_MODEL` | Wrangler variable | Optional | Workers AI model; default is `@cf/meta/llama-3.1-8b-instruct`. |
+| `MINI_APP_URL` | Worker secret or variable | Optional for bot replies; set to `https://<worker-host>/mini-app` to show the Mini App button. | Full HTTPS Mini App URL. |
+
+The D1 database ID is a required Wrangler resource identifier, not a secret or environment variable. Do not invent it; obtain it from the `wrangler d1 create` output.
+
+## Deploy checklist
+
+Do not deploy until the D1 ID placeholder has been replaced and both Telegram secrets have been set.
+
+```sh
+npm install
+npx wrangler login
+npx wrangler d1 create shemsi-ai-db
+# Copy the returned database_id into wrangler.toml
+npx wrangler d1 migrations apply shemsi-ai-db --remote
+npx wrangler secret put TELEGRAM_BOT_TOKEN
+npx wrangler secret put TELEGRAM_SECRET_TOKEN
+npx wrangler secret put MINI_APP_URL
+npm run typecheck
+npm test
+npm run deploy
+```
+
+`MINI_APP_URL` is optional; omit its secret command if you don't need the bot's inline Mini App button. A local `.dev.vars` file may be used for local secrets; it is ignored by Git.
+
+After deployment, set the webhook, substituting your actual new token, Worker URL, and the same webhook secret configured above:
 
 ```sh
 curl -X POST "https://api.telegram.org/bot<NEW_BOT_TOKEN>/setWebhook" \
@@ -39,16 +61,17 @@ curl -X POST "https://api.telegram.org/bot<NEW_BOT_TOKEN>/setWebhook" \
   -d 'allowed_updates=["message"]'
 ```
 
-8. Message your new bot with `/start`, then open the Mini App from its menu button. It must be opened inside Telegram; direct browser access cannot authenticate private data.
+The exact webhook endpoint is `POST /telegram/webhook`. Check `/api/health`, message the new bot with `/start`, and open `/mini-app` from Telegram to test authenticated dashboard access.
 
-## Workers AI
+## Commands
 
-`wrangler.toml` binds Workers AI as `AI`; the model is selected by `DEFAULT_MODEL` and defaults to `@cf/meta/llama-3.1-8b-instruct`. Make sure Workers AI is enabled for your Cloudflare account. No Gemini, Google AI Studio, or Google AI APIs are used.
+- `npm run dev` — local Wrangler Worker development server.
+- `npm run deploy` — deploy with Wrangler.
+- `npm run db:create` — create the named D1 database.
+- `npm run db:migrate` — apply migrations remotely.
+- `npm run typecheck` — TypeScript check (`tsc --noEmit`).
+- `npm test` — Node's test runner; no test files are currently included, so this is not meaningful feature validation yet.
 
-## Local development
+## Limits and safety
 
-Use `npm run dev`. Telegram cannot call a local Worker without a secure tunnel; do not expose a production bot token in local logs. D1 local migrations can be run with `npx wrangler d1 migrations apply shemsi-ai-db --local` after creating the local DB. Configure local secrets in an ignored `.dev.vars` file.
-
-## Current limits
-
-The project currently provides conversational AI, saved memory, and built-in prompt skills. It does not yet execute scheduled tasks, perform live web search, read uploaded files, or connect Gmail, Calendar, GitHub, Notion, OAuth, MCP, or custom APIs. Marketplace commands explicitly say so instead of reporting fake connections or completed work. Never store app credentials in D1 plaintext.
+Only the Telegram bot token, webhook token, and optional Mini App URL are runtime configuration values for this version. App marketplace OAuth credentials, R2 storage, Queues, and Workflows are not configured. Do not advertise integrations as usable until their authorization and action handlers exist. Do not commit bot tokens, `.dev.vars`, or real D1 credentials.

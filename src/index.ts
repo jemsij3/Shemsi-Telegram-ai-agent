@@ -47,8 +47,13 @@ export default {
         return json({ error: 'Not found' }, 404);
       }
 
-      if (request.method === 'POST' && url.pathname === '/telegram/webhook') return new Response('Method not allowed', { status: 405 });
-      if (env.ASSETS) return env.ASSETS.fetch(request);
+      if (env.ASSETS) {
+        if (request.method === 'GET' && (url.pathname === '/mini-app' || url.pathname === '/mini-app/')) {
+          url.pathname = '/';
+          return env.ASSETS.fetch(new Request(url, request));
+        }
+        return env.ASSETS.fetch(request);
+      }
       return new Response('Shemsi AI is running. Open /mini-app in Telegram.', { status: 200 });
     } catch (error) {
       console.error('Request failed', error instanceof Error ? error.message : 'Unknown error');
