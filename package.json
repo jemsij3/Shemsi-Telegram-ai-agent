@@ -3,11 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev src/index.ts --local",
+    "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "db:migrate": "wrangler d1 migrations apply SHEMSI_DB --local",
+    "db:create": "wrangler d1 create shemsi-ai-db",
+    "db:migrate": "wrangler d1 migrations apply shemsi-ai-db --remote",
     "typecheck": "tsc --noEmit",
-    "lint": "tsc --noEmit"
+    "test": "node --test"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241127.0",

@@ -4,19 +4,18 @@ compatibility_date = "2026-11-07"
 workers_dev = true
 
 [vars]
-APP_NAME = "Shemsi AI"
-APP_BRAND = "SHEMSI"
-TELEGRAM_API_BASE = "https://api.telegram.org"
 DEFAULT_MODEL = "@cf/meta/llama-3.1-8b-instruct"
+
+[ai]
+binding = "AI"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "shemsi-ai-db"
-database_id = "replace-with-your-d1-id"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
 
-[[r2_buckets]]
-binding = "FILES"
-bucket_name = "shemsi-ai-files"
-
-[ai]
-binding = "AI"
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
