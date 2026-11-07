@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shemsi AI</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div class="brand">SHEMSI</div>
+        <button class="theme-button" id="themeToggle">Dark</button>
+      </header>
+
+      <main class="dashboard">
+        <section class="hero card">
+          <div>
+            <p class="eyebrow">Personal AI</p>
+            <h1>Good morning, Shemsi.</h1>
+          </div>
+          <button class="primary-button">Ask Shemsi</button>
+        </section>
+
+        <section class="grid stats">
+          <article class="card compact">
+            <span class="stat-label">Tasks</span>
+            <strong>3 active</strong>
+          </article>
+          <article class="card compact">
+            <span class="stat-label">Apps</span>
+            <strong>4 connected</strong>
+          </article>
+          <article class="card compact">
+            <span class="stat-label">Skills</span>
+            <strong>6 enabled</strong>
+          </article>
+        </section>
+
+        <section class="card chat-panel">
+          <div class="panel-header">
+            <h2>AI Chat</h2>
+            <span class="status-dot">Online</span>
+          </div>
+
+          <div class="messages">
+            <div class="bubble assistant">Hi! I can help you plan work, respond to messages, and connect apps.</div>
+            <div class="bubble user">Connect my GitHub account.</div>
+            <div class="bubble assistant">I can start the secure GitHub authorization flow and then assist with repo tasks.</div>
+          </div>
+
+          <div class="composer">
+            <input type="text" id="messageInput" placeholder="Message Shemsi..." />
+            <button class="primary-button" id="sendButton">Send</button>
+          </div>
+        </section>
+
+        <section class="section-grid">
+          <article class="card">
+            <div class="panel-header">
+              <h2>Marketplace</h2>
+            </div>
+            <ul class="item-list">
+              <li><span>GitHub</span><span>OAuth</span></li>
+              <li><span>Gmail</span><span>OAuth</span></li>
+              <li><span>Google Calendar</span><span>OAuth</span></li>
+              <li><span>Notion</span><span>API key</span></li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <div class="panel-header">
+              <h2>Skills</h2>
+            </div>
+            <ul class="item-list">
+              <li><span>Research</span><span>On</span></li>
+              <li><span>Writing</span><span>On</span></li>
+              <li><span>Scheduling</span><span>On</span></li>
+              <li><span>Automation</span><span>On</span></li>
+            </ul>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

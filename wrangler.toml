@@ -1,0 +1,22 @@
+name = "shemsi-ai"
+main = "src/index.ts"
+compatibility_date = "2026-11-07"
+workers_dev = true
+
+[vars]
+APP_NAME = "Shemsi AI"
+APP_BRAND = "SHEMSI"
+TELEGRAM_API_BASE = "https://api.telegram.org"
+DEFAULT_MODEL = "@cf/meta/llama-3.1-8b-instruct"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "shemsi-ai-db"
+database_id = "replace-with-your-d1-id"
+
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "shemsi-ai-files"
+
+[ai]
+binding = "AI"
